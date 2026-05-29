@@ -22,11 +22,24 @@ const router = createRouter({
       meta: { title: 'Продукты | SpaceTech' }
     },
     {
+      path: '/projects',
+      name: 'projects',
+      component: () => import('../views/ProjectsView.vue'),
+      meta: { title: 'Проекты | SpaceTech' }
+    },
+    {
+      path: '/news',
+      name: 'news',
+      component: () => import('../views/NewsView.vue'),
+      meta: { title: 'Новости | SpaceTech' }
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/'
     }
   ],
   scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
     return { top: 0, behavior: 'smooth' }
   }
 })
