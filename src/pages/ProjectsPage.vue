@@ -73,118 +73,45 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import '../styles/projects.css'
 
 const activeFilter = ref('all')
+const projects = ref([])
+const isLoading = ref(true)
 
-const filters = [
-  {
-    label: 'Все проекты',
-    value: 'all',
-  },
-  {
-    label: 'Завершенные',
-    value: 'completed',
-  },
-  {
-    label: 'В работе',
-    value: 'active',
-  },
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
+// Локальные данные (фолбэк, если бэк временно недоступен)
+const localProjects = [
+  { id: 1, title: 'Тестовый проект', status: 'active', statusText: 'В работе', date: '2024', customer: 'Test', image: '', results: ['Проверка связи'] }
 ]
 
-const projects = [
-  {
-    id: 1,
-    title: 'Запуск группировки "Связь-2023"',
-    status: 'completed',
-    statusText: 'Завершен',
-    date: 'Янв 2023 — Июн 2023',
-    customer: 'РосКосмос',
-    image: '/images/project-1.jpg',
-    results: [
-      'Успешный вывод 12 спутников на орбиту',
-      'Точность вывода 99.8%',
-      'Развёртывание группировки завершено',
-    ],
-  },
-  {
-    id: 2,
-    title: 'Миссия к Луне "Луна-Ресурс"',
-    status: 'active',
-    statusText: 'В работе',
-    date: 'Авг 2024 — Настоящее время',
-    customer: 'ИКИ РАН',
-    image: '/images/project-2.jpg',
-    results: [
-      'Ракета успешно запущена',
-      'Коррекция траектории выполнена',
-      'Ожидается посадка в декабре 2026',
-    ],
-  },
-  {
-    id: 3,
-    title: 'Коммерческий запуск для SpaceCom',
-    status: 'completed',
-    statusText: 'Завершен',
-    date: 'Мар 2024 — Май 2024',
-    customer: 'SpaceCom Inc.',
-    image: '/images/project-3.jpg',
-    results: [
-      'Вывод коммерческого спутника на ГСО',
-      'Клиент подтвердил работоспособность',
-      'Экономия 15% от плановой стоимости',
-    ],
-  },
-  {
-    id: 4,
-    title: 'Орбитальная станция "Восток-2"',
-    status: 'active',
-    statusText: 'В работе',
-    date: 'Сент 2025 — Настоящее время',
-    customer: 'РосКосмос',
-    image: '/images/project-4.jpg',
-    results: [
-      'Запущен первый модуль станции',
-      'Стыковка прошла успешно',
-      'Ожидается запуск второго модуля',
-    ],
-  },
-  {
-    id: 5,
-    title: 'Научная миссия "Марс-Метео"',
-    status: 'completed',
-    statusText: 'Завершен',
-    date: 'Фев 2023 — Окт 2023',
-    customer: 'ESA',
-    image: '/images/project-5.jpg',
-    results: [
-      'Успешный запуск и выход на траекторию',
-      'Зонд достиг орбиты Марса',
-      'Передача данных о погоде на Марсе',
-    ],
-  },
-  {
-    id: 6,
-    title: 'Группировка "Глобальный GPS"',
-    status: 'completed',
-    statusText: 'Завершен',
-    date: 'Июл 2022 — Дек 2022',
-    customer: 'ГЛОНАСС',
-    image: '/images/project-6.jpg',
-    results: [
-      'Запущено 8 навигационных спутников',
-      'Точность позиционирования улучшена',
-      'Покрытие территории расширено',
-    ],
-  },
+onMounted(async () => {
+  try {
+    const res = await fetch(`${API_URL}/api/projects`)
+    if (res.ok) {
+      const data = await res.json()
+      projects.value = Array.isArray(data) && data.length ? data : localProjects
+    } else {
+      projects.value = localProjects
+    }
+  } catch (err) {
+    console.warn('Бэкенд недоступен, используем локальные данные:', err)
+    projects.value = localProjects
+  } finally {
+    isLoading.value = false
+  }
+})
+
+const filters = [
+  { label: 'Все проекты', value: 'all' },
+  { label: 'Завершенные', value: 'completed' },
+  { label: 'В работе', value: 'active' },
 ]
 
 const filteredProjects = computed(() => {
-  if (activeFilter.value === 'all') {
-    return projects
-  }
-
-  return projects.filter((project) => project.status === activeFilter.value)
+  if (activeFilter.value === 'all') return projects.value
+  return projects.value.filter(p => p.status === activeFilter.value)
 })
 </script>
